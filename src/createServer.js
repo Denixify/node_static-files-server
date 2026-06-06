@@ -15,8 +15,15 @@ function sendText(res, status, message) {
 
 function createServer() {
   const server = http.createServer(async (req, res) => {
+    let pathname = req.url;
+
+    if (pathname.includes('../')) {
+      return sendText(res, 400, 'Bad request');
+    }
+
     const url = new URL(req.url, `http://${req.headers.host}`);
-    let { pathname } = url;
+
+    pathname = url.pathname;
 
     try {
       pathname = decodeURIComponent(pathname);
