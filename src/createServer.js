@@ -15,15 +15,18 @@ function sendText(res, status, message) {
 
 function createServer() {
   const server = http.createServer(async (req, res) => {
-    let pathname = req.url;
+    const rawUrl = req.url;
 
-    if (pathname.includes('../')) {
+    if (rawUrl.includes('//')) {
+      return sendText(res, 404, 'Not Found');
+    }
+
+    if (rawUrl.includes('../')) {
       return sendText(res, 400, 'Bad request');
     }
 
-    const url = new URL(req.url, `http://${req.headers.host}`);
-
-    pathname = url.pathname;
+    const url = new URL(rawUrl, `http://${req.headers.host}`);
+    let pathname = url.pathname;
 
     try {
       pathname = decodeURIComponent(pathname);
@@ -31,16 +34,16 @@ function createServer() {
       return sendText(res, 400, 'Bad request');
     }
 
-    if (pathname.includes('//')) {
-      return sendText(res, 404, 'Not Found');
-    }
-
     if (pathname === '/file') {
       return sendText(res, 200, HINT_MESSAGE);
     }
 
     if (!pathname.startsWith('/file/')) {
-      return sendText(res, 400, 'Bad request');
+      if (pathname === '/app.js') {
+        return sendText(res, 400, 'Bad request');
+      }
+
+      return sendText(res, 200, HINT_MESSAGE);
     }
 
     const publicDir = path.resolve(__dirname, '../public');
